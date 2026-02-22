@@ -2,25 +2,45 @@ apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: kube-prometheus-stack
-  namespace: argocd             
+  namespace: argocd
 spec:
   project: default
-  sources:
-    - repoURL: https://prometheus-community.github.io/helm-charts
-      chart: kube-prometheus-stack
-      targetRevision: "65.2.0"
-      helm:
-        valueFiles:
-          - $values/apps/observability/values/prometheus-values.yaml
-    - repoURL: https://github.com/KeyssonG/Observabilidade-grafana.git
-      targetRevision: main
-      ref: values
+  source:
+    repoURL: https://prometheus-community.github.io/helm-charts
+    chart: kube-prometheus-stack
+    targetRevision: 65.2.0
+    helm:
+      values: |
+        prometheus:
+          prometheusSpec:
+            retention: 15d
+            storageSpec:
+              volumeClaimTemplate:
+                spec:
+                  accessModes: ["ReadWriteOnce"]
+                  resources:
+                    requests:
+                      storage: 20Gi
+        grafana:
+          enabled: true
+          adminUser: "admin"
+          adminPassword: "admin"
+          service:
+            type: LoadBalancer
+            nodePort: 32101
+          additionalDataSources:
+            - name: Loki
+              type: loki
+              url: http://loki:3100
+              access: proxy
+              isDefault: false
   destination:
     server: https://kubernetes.default.svc
-    namespace: observability      
+    namespace: observability
   syncPolicy:
     automated:
-      prune: true                
-      selfHeal: true              
+      prune: true
+      selfHeal: true
     syncOptions:
-      - CreateNamespace=true      
+      - CreateNamespace=true
+      - ServerSideApply=true
