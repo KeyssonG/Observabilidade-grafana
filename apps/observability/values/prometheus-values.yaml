@@ -39,7 +39,7 @@ grafana:
   adminPassword: "admin"  
   defaultDashboardsEnabled: true
   service:
-    type: ClusterIP
+    type: LoadBalancer
   persistence:
     enabled: true
     accessModes:
