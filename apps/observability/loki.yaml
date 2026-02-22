@@ -17,6 +17,10 @@ spec:
             size: 10Gi
         promtail:
           enabled: true
+        grafana:
+          sidecar:
+            datasources:
+              enabled: false
   destination:
     server: https://kubernetes.default.svc
     namespace: observability
